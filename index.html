@@ -4,113 +4,188 @@
   <meta charset="UTF-8" />
   <title>Bid Manager</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      max-width: 800px;
-    }
+    body { font-family: Arial, sans-serif; margin: 40px; max-width: 1100px; }
+    h1, h2 { margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { border: 1px solid #ccc; padding: 16px; }
+    label { display: block; margin-top: 10px; }
+    input, textarea, select { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
+    textarea { min-height: 70px; }
+    button { padding: 8px 12px; font-size: 14px; cursor: pointer; }
+    .row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+    .row > div { min-width: 180px; flex: 1; }
+    .muted { color: #555; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; cursor: pointer; user-select: none; }
+    th .sort { font-size: 12px; color: #555; margin-left: 6px; }
+    .actions { display: flex; gap: 8px; }
+    .danger { background: #fff; border: 1px solid #cc0000; color: #cc0000; }
+    .hidden { display: none !important; }
 
-    h1, h2 {
-      margin-bottom: 10px;
+    /* modal */
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+      display: flex; justify-content: center; align-items: center;
     }
-
-    form {
-      margin-bottom: 30px;
-      padding: 20px;
+    .modal {
+      background: #fff; padding: 16px; width: 520px; max-width: 95vw;
       border: 1px solid #ccc;
     }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 6px;
-      margin-top: 4px;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px 16px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-
-    th {
-      background: #f0f0f0;
-    }
+    .modal h3 { margin: 0 0 10px 0; }
+    .modal .buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .error { color: #b00020; font-size: 13px; margin-top: 8px; }
   </style>
 </head>
 <body>
 
 <h1>Bid Manager</h1>
 
-<h2>Create New Bid</h2>
+<div class="grid">
+  <div class="card">
+    <h2>Create New Bid</h2>
+    <form id="bidForm">
+      <label>
+        Job Name (required)
+        <input type="text" id="jobName" required />
+      </label>
 
-<form id="bidForm">
-  <label>
-    Job Name (required)
-    <input type="text" id="jobName" required />
-  </label>
+      <label>
+        Job Acronym
+        <input type="text" id="jobAcronym" />
+      </label>
 
-  <label>
-    Job Acronym
-    <input type="text" id="jobAcronym" />
-  </label>
+      <label>
+        Estimator Name (required)
+        <input type="text" id="estimatorName" required />
+      </label>
 
-  <label>
-    Estimator Name (required)
-    <input type="text" id="estimatorName" required />
-  </label>
+      <label>
+        Start Date
+        <input type="date" id="startDate" />
+      </label>
 
-  <label>
-    Start Date
-    <input type="date" id="startDate" />
-  </label>
+      <label>
+        End Date
+        <input type="date" id="endDate" />
+      </label>
 
-  <label>
-    End Date
-    <input type="date" id="endDate" />
-  </label>
+      <label>
+        Notes
+        <textarea id="notes"></textarea>
+      </label>
 
-  <label>
-    Notes
-    <textarea id="notes"></textarea>
-  </label>
+      <button type="submit">Save Bid</button>
+      <div class="muted" style="margin-top:8px;">
+        Data is saved in this browser only (localStorage).
+      </div>
+    </form>
+  </div>
 
-  <button type="submit">Save Bid</button>
-</form>
+  <div class="card">
+    <h2>Filter & Sort</h2>
 
-<h2>Saved Bids</h2>
+    <div class="row">
+      <div>
+        <label>
+          Search (any field)
+          <input type="text" id="searchText" placeholder="type to filter..." />
+        </label>
+      </div>
+
+      <div>
+        <label>
+          Estimators (multi-select)
+          <select id="estimatorFilter" multiple size="6"></select>
+        </label>
+        <div class="muted">Tip: Ctrl/Cmd-click to select multiple.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <div>
+        <label>
+          Date field
+          <select id="dateField">
+            <option value="startDate">Start Date</option>
+            <option value="endDate">End Date</option>
+          </select>
+        </label>
+      </div>
+
+      <div>
+        <label>
+          Date from
+          <input type="date" id="dateFrom" />
+        </label>
+      </div>
+
+      <div>
+        <label>
+          Date to
+          <input type="date" id="dateTo" />
+        </label>
+      </div>
+
+      <div style="flex:0; min-width: 140px;">
+        <button type="button" id="clearFiltersBtn">Clear filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-top:24px;">Saved Bids</h2>
 
 <table>
   <thead>
     <tr>
-      <th>Job Name</th>
-      <th>Acronym</th>
-      <th>Estimator</th>
-      <th>Start</th>
-      <th>End</th>
+      <th data-key="jobName">Job Name <span class="sort" id="sort-jobName"></span></th>
+      <th data-key="jobAcronym">Acronym <span class="sort" id="sort-jobAcronym"></span></th>
+      <th data-key="estimatorName">Estimator <span class="sort" id="sort-estimatorName"></span></th>
+      <th data-key="startDate">Start <span class="sort" id="sort-startDate"></span></th>
+      <th data-key="endDate">End <span class="sort" id="sort-endDate"></span></th>
+      <th data-key="createdAt">Created <span class="sort" id="sort-createdAt"></span></th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody id="bidsTableBody"></tbody>
 </table>
 
+<!-- Delete modal -->
+<div id="deleteBackdrop" class="backdrop hidden" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>Final delete confirmation</h3>
+    <div id="deleteSummary" class="muted"></div>
+
+    <label>
+      Type the job acronym to confirm
+      <input type="text" id="confirmAcronym" />
+    </label>
+
+    <label>
+      Enter password to delete
+      <input type="password" id="confirmPassword" />
+    </label>
+
+    <div id="deleteError" class="error hidden"></div>
+
+    <div class="buttons">
+      <button type="button" id="cancelDeleteBtn">Cancel</button>
+      <button type="button" id="finalDeleteBtn" class="danger">Delete permanently</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const STORAGE_KEY = "bids";
+
+  // NOTE: This is NOT secure in a frontend-only app.
+  // Anyone can view the source and see the password.
+  const DELETE_PASSWORD = "#Lothar10";
+
+  let sortKey = "createdAt";
+  let sortDir = "desc"; // "asc" | "desc"
+  let pendingDeleteId = null;
 
   function loadBids() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -121,38 +196,193 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bids));
   }
 
+  function normalize(s) {
+    return (s ?? "").toString().trim().toLowerCase();
+  }
+
+  function compareValues(a, b, key) {
+    const va = a[key] ?? "";
+    const vb = b[key] ?? "";
+
+    // For dates/timestamps, ISO strings compare lexicographically correctly.
+    // For plain text, normalize.
+    const sa = typeof va === "string" ? va : String(va);
+    const sb = typeof vb === "string" ? vb : String(vb);
+
+    const na = normalize(sa);
+    const nb = normalize(sb);
+
+    if (na < nb) return -1;
+    if (na > nb) return 1;
+    return 0;
+  }
+
+  function withinDateRange(valueISODate, fromISODate, toISODate) {
+    if (!fromISODate && !toISODate) return true;
+    if (!valueISODate) return false;
+
+    // valueISODate is "YYYY-MM-DD" for date inputs
+    if (fromISODate && valueISODate < fromISODate) return false;
+    if (toISODate && valueISODate > toISODate) return false;
+    return true;
+  }
+
+  function getFilters() {
+    const searchText = normalize(document.getElementById("searchText").value);
+    const estimatorSelect = document.getElementById("estimatorFilter");
+    const selectedEstimators = Array.from(estimatorSelect.selectedOptions).map(o => normalize(o.value));
+
+    const dateField = document.getElementById("dateField").value; // startDate|endDate
+    const dateFrom = document.getElementById("dateFrom").value;   // YYYY-MM-DD
+    const dateTo = document.getElementById("dateTo").value;       // YYYY-MM-DD
+
+    return { searchText, selectedEstimators, dateField, dateFrom, dateTo };
+  }
+
+  function matchesSearch(bid, searchText) {
+    if (!searchText) return true;
+
+    const haystack = [
+      bid.jobName, bid.jobAcronym, bid.estimatorName,
+      bid.startDate, bid.endDate, bid.notes,
+      bid.createdAt
+    ].map(v => normalize(v)).join(" ");
+
+    return haystack.includes(searchText);
+  }
+
+  function matchesEstimator(bid, selectedEstimators) {
+    if (!selectedEstimators || selectedEstimators.length === 0) return true;
+    return selectedEstimators.includes(normalize(bid.estimatorName));
+  }
+
+  function matchesDate(bid, dateField, dateFrom, dateTo) {
+    return withinDateRange(bid[dateField], dateFrom, dateTo);
+  }
+
+  function updateEstimatorFilterOptions(bids) {
+    const select = document.getElementById("estimatorFilter");
+    const currentSelected = new Set(Array.from(select.selectedOptions).map(o => o.value));
+
+    const estimators = Array.from(new Set(
+      bids.map(b => (b.estimatorName ?? "").trim()).filter(Boolean)
+    )).sort((a, b) => normalize(a).localeCompare(normalize(b)));
+
+    select.innerHTML = "";
+    for (const name of estimators) {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      if (currentSelected.has(name)) opt.selected = true;
+      select.appendChild(opt);
+    }
+  }
+
+  function setSort(key) {
+    if (sortKey === key) {
+      sortDir = (sortDir === "asc") ? "desc" : "asc";
+    } else {
+      sortKey = key;
+      sortDir = "asc";
+    }
+  }
+
+  function renderSortIndicators() {
+    const keys = ["jobName","jobAcronym","estimatorName","startDate","endDate","createdAt"];
+    for (const k of keys) {
+      const el = document.getElementById(`sort-${k}`);
+      if (!el) continue;
+      if (k !== sortKey) {
+        el.textContent = "";
+      } else {
+        el.textContent = sortDir === "asc" ? "▲" : "▼";
+      }
+    }
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return "";
+    // show first 19 chars: YYYY-MM-DDTHH:MM:SS
+    return iso.length >= 19 ? iso.slice(0, 19).replace("T", " ") : iso;
+  }
+
   function renderBids() {
     const bids = loadBids();
+    updateEstimatorFilterOptions(bids);
+
+    const { searchText, selectedEstimators, dateField, dateFrom, dateTo } = getFilters();
+
+    let view = bids
+      .filter(b => matchesSearch(b, searchText))
+      .filter(b => matchesEstimator(b, selectedEstimators))
+      .filter(b => matchesDate(b, dateField, dateFrom, dateTo));
+
+    view.sort((a, b) => {
+      const c = compareValues(a, b, sortKey);
+      return sortDir === "asc" ? c : -c;
+    });
+
+    renderSortIndicators();
+
     const tbody = document.getElementById("bidsTableBody");
     tbody.innerHTML = "";
 
-    bids.forEach(bid => {
+    for (const bid of view) {
       const row = document.createElement("tr");
-
       row.innerHTML = `
-        <td>${bid.jobName}</td>
-        <td>${bid.jobAcronym || ""}</td>
-        <td>${bid.estimatorName}</td>
-        <td>${bid.startDate || ""}</td>
-        <td>${bid.endDate || ""}</td>
+        <td>${escapeHtml(bid.jobName)}</td>
+        <td>${escapeHtml(bid.jobAcronym || "")}</td>
+        <td>${escapeHtml(bid.estimatorName)}</td>
+        <td>${escapeHtml(bid.startDate || "")}</td>
+        <td>${escapeHtml(bid.endDate || "")}</td>
+        <td>${escapeHtml(formatDateTime(bid.createdAt || ""))}</td>
+        <td>
+          <div class="actions">
+            <button type="button" class="danger" data-action="delete" data-id="${bid.id}">Delete</button>
+          </div>
+        </td>
       `;
-
       tbody.appendChild(row);
-    });
+    }
   }
 
+  // Minimal HTML escaping to prevent injecting markup via stored data.
+  function escapeHtml(str) {
+    const s = (str ?? "").toString();
+    return s
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  // Create bid
   document.getElementById("bidForm").addEventListener("submit", event => {
     event.preventDefault();
 
+    const jobName = document.getElementById("jobName").value.trim();
+    const estimatorName = document.getElementById("estimatorName").value.trim();
+    const jobAcronym = document.getElementById("jobAcronym").value.trim();
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const notes = document.getElementById("notes").value.trim();
+
+    if (startDate && endDate && endDate < startDate) {
+      alert("End Date cannot be earlier than Start Date.");
+      return;
+    }
+
     const bid = {
       id: crypto.randomUUID(),
-      jobName: document.getElementById("jobName").value.trim(),
-      jobAcronym: document.getElementById("jobAcronym").value.trim(),
-      estimatorName: document.getElementById("estimatorName").value.trim(),
-      startDate: document.getElementById("startDate").value,
-      endDate: document.getElementById("endDate").value,
-      notes: document.getElementById("notes").value.trim(),
-      createdAt: new Date().toISOString()
+      jobName,
+      jobAcronym,
+      estimatorName,
+      startDate,
+      endDate,
+      notes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const bids = loadBids();
@@ -163,6 +393,122 @@
     renderBids();
   });
 
+  // Sorting: click header
+  document.querySelectorAll("th[data-key]").forEach(th => {
+    th.addEventListener("click", () => {
+      setSort(th.dataset.key);
+      renderBids();
+    });
+  });
+
+  // Filters
+  ["searchText","estimatorFilter","dateField","dateFrom","dateTo"].forEach(id => {
+    document.getElementById(id).addEventListener("input", renderBids);
+    document.getElementById(id).addEventListener("change", renderBids);
+  });
+
+  document.getElementById("clearFiltersBtn").addEventListener("click", () => {
+    document.getElementById("searchText").value = "";
+    const sel = document.getElementById("estimatorFilter");
+    Array.from(sel.options).forEach(o => o.selected = false);
+    document.getElementById("dateField").value = "startDate";
+    document.getElementById("dateFrom").value = "";
+    document.getElementById("dateTo").value = "";
+    renderBids();
+  });
+
+  // Delete flow (triple confirmation)
+  document.getElementById("bidsTableBody").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+
+    if (action === "delete") {
+      // Confirmation #1 already occurred (user clicked delete)
+      // Confirmation #2:
+      const ok = confirm("Are you sure you want to delete this bid? This cannot be undone.");
+      if (!ok) return;
+
+      // Confirmation #3: modal with acronym + password
+      openDeleteModal(id);
+    }
+  });
+
+  function openDeleteModal(id) {
+    const bids = loadBids();
+    const bid = bids.find(b => b.id === id);
+    if (!bid) return;
+
+    pendingDeleteId = id;
+
+    document.getElementById("deleteSummary").textContent =
+      `Deleting: ${bid.jobName} (Acronym: ${bid.jobAcronym || "(blank)"}, Estimator: ${bid.estimatorName})`;
+
+    document.getElementById("confirmAcronym").value = "";
+    document.getElementById("confirmPassword").value = "";
+    hideDeleteError();
+
+    document.getElementById("deleteBackdrop").classList.remove("hidden");
+    document.getElementById("confirmAcronym").focus();
+  }
+
+  function closeDeleteModal() {
+    pendingDeleteId = null;
+    document.getElementById("deleteBackdrop").classList.add("hidden");
+  }
+
+  function showDeleteError(msg) {
+    const el = document.getElementById("deleteError");
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+
+  function hideDeleteError() {
+    const el = document.getElementById("deleteError");
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+
+  document.getElementById("cancelDeleteBtn").addEventListener("click", closeDeleteModal);
+
+  document.getElementById("finalDeleteBtn").addEventListener("click", () => {
+    if (!pendingDeleteId) return;
+
+    const bids = loadBids();
+    const bid = bids.find(b => b.id === pendingDeleteId);
+    if (!bid) {
+      closeDeleteModal();
+      renderBids();
+      return;
+    }
+
+    const typedAcronym = document.getElementById("confirmAcronym").value.trim();
+    const typedPassword = document.getElementById("confirmPassword").value;
+
+    // Require acronym match (case-insensitive). If acronym is blank, require blank.
+    const expectedAcronym = (bid.jobAcronym ?? "").trim();
+    const acronymOk = normalize(typedAcronym) === normalize(expectedAcronym);
+
+    if (!acronymOk) {
+      showDeleteError("Acronym does not match. Deletion blocked.");
+      return;
+    }
+
+    if (typedPassword !== DELETE_PASSWORD) {
+      showDeleteError("Password incorrect. Deletion blocked.");
+      return;
+    }
+
+    const updated = bids.filter(b => b.id !== pendingDeleteId);
+    saveBids(updated);
+
+    closeDeleteModal();
+    renderBids();
+  });
+
+  // Initial render
   renderBids();
 </script>
 
