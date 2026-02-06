@@ -7,28 +7,164 @@
     body {
       font-family: Arial, sans-serif;
       margin: 40px;
+      max-width: 800px;
     }
-    h1 {
-      margin-bottom: 20px;
+
+    h1, h2 {
+      margin-bottom: 10px;
     }
+
+    form {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+    }
+
     button {
+      margin-top: 15px;
       padding: 10px 16px;
-      font-size: 16px;
+      font-size: 14px;
       cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
     }
   </style>
 </head>
 <body>
 
-  <h1>Bid Manager</h1>
+<h1>Bid Manager</h1>
 
-  <button id="createBidBtn">Create New Bid</button>
+<h2>Create New Bid</h2>
 
-  <script>
-    document.getElementById("createBidBtn").addEventListener("click", () => {
-      alert("Create Bid form will go here later.");
+<form id="bidForm">
+  <label>
+    Job Name (required)
+    <input type="text" id="jobName" required />
+  </label>
+
+  <label>
+    Job Acronym
+    <input type="text" id="jobAcronym" />
+  </label>
+
+  <label>
+    Estimator Name (required)
+    <input type="text" id="estimatorName" required />
+  </label>
+
+  <label>
+    Start Date
+    <input type="date" id="startDate" />
+  </label>
+
+  <label>
+    End Date
+    <input type="date" id="endDate" />
+  </label>
+
+  <label>
+    Notes
+    <textarea id="notes"></textarea>
+  </label>
+
+  <button type="submit">Save Bid</button>
+</form>
+
+<h2>Saved Bids</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Job Name</th>
+      <th>Acronym</th>
+      <th>Estimator</th>
+      <th>Start</th>
+      <th>End</th>
+    </tr>
+  </thead>
+  <tbody id="bidsTableBody"></tbody>
+</table>
+
+<script>
+  const STORAGE_KEY = "bids";
+
+  function loadBids() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  function saveBids(bids) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bids));
+  }
+
+  function renderBids() {
+    const bids = loadBids();
+    const tbody = document.getElementById("bidsTableBody");
+    tbody.innerHTML = "";
+
+    bids.forEach(bid => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${bid.jobName}</td>
+        <td>${bid.jobAcronym || ""}</td>
+        <td>${bid.estimatorName}</td>
+        <td>${bid.startDate || ""}</td>
+        <td>${bid.endDate || ""}</td>
+      `;
+
+      tbody.appendChild(row);
     });
-  </script>
+  }
+
+  document.getElementById("bidForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const bid = {
+      id: crypto.randomUUID(),
+      jobName: document.getElementById("jobName").value.trim(),
+      jobAcronym: document.getElementById("jobAcronym").value.trim(),
+      estimatorName: document.getElementById("estimatorName").value.trim(),
+      startDate: document.getElementById("startDate").value,
+      endDate: document.getElementById("endDate").value,
+      notes: document.getElementById("notes").value.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    const bids = loadBids();
+    bids.push(bid);
+    saveBids(bids);
+
+    event.target.reset();
+    renderBids();
+  });
+
+  renderBids();
+</script>
 
 </body>
 </html>
